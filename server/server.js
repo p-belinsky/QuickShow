@@ -8,6 +8,10 @@ import { serve } from 'inngest/express';
 
 dotenv.config();
 
+if (!process.env.CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
+  throw new Error("Missing Clerk environment variables");
+}
+
 const app = express();
 const port = 3000;
 
@@ -16,7 +20,10 @@ await connectDB();
 
 app.use(express.json());
 app.use(cors());
-app.use(clerkMiddleware());
+app.use(clerkMiddleware({
+    publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+    secretKey: process.env.CLERK_SECRET_KEY,
+}));
 
 
 app.get('/', (req, res) => {
