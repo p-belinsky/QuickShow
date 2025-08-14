@@ -8,8 +8,13 @@ import Show from "../models/Show.js";
 
 export const inngest = new Inngest({
   id: "movie-ticket-booking",
-
+  eventKey: process.env.INNGEST_EVENT_KEY,
 });
+
+console.log(
+  "DEBUG: Inngest Event Key Loaded:",
+  process.env.INNGEST_EVENT_KEY ? "✅ Loaded" : "❌ MISSING"
+);
 
 const syncUserCreation = inngest.createFunction(
   {

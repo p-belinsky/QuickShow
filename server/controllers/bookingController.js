@@ -71,12 +71,8 @@ export const createBooking = async (req, res) => {
             {
                 name: "app/checkpayment",
                 data: { bookingId: booking._id.toString() },
-            },
-            {
-                headers: {
-                    "X-INNGEST-EVENT-KEY": process.env.INNGEST_EVENT_KEY,
-                },
             }
+
         );
 
         res.json({ success: true, url: session.url });
