@@ -69,25 +69,46 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
     id: "release-seats-delete-booking",
   },
   {
-    event: "app/checkpayment",
+    event: "app/checkpayment", // Make sure this exactly matches what you send
   },
-  async ({event, step}) => {
-    // Wait 10 minutes
-    const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
-    await step.sleepUntil('wait-for-10-minutes', tenMinutesLater);
+  async ({ event, step }) => {
+    console.log("🔥 releaseSeatsAndDeleteBooking triggered", event.data.bookingId);
 
-    // Directly run your logic
-    const bookingId = event.data.bookingId;
-    const booking = await Booking.findById(bookingId);
+    try {
+      // Wait 10 minutes
+      const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
+      console.log(`⏱ Sleeping until ${tenMinutesLater}`);
+      await step.sleepUntil('wait-for-10-minutes', tenMinutesLater);
 
-    if (!booking.isPaid) {
-      const show = await Show.findById(booking.show);
-      booking.bookedSeats.forEach(seat => {
-        delete show.occupiedSeats[seat];
-      });
-      show.markModified("occupiedSeats");
-      await show.save();
-      await Booking.findByIdAndDelete(booking._id);
+      // Fetch booking
+      const bookingId = event.data.bookingId;
+      const booking = await Booking.findById(bookingId);
+      if (!booking) {
+        console.log(`⚠️ Booking not found: ${bookingId}`);
+        return;
+      }
+
+      // If not paid, release seats and delete booking
+      if (!booking.isPaid) {
+        const show = await Show.findById(booking.show);
+        if (!show) {
+          console.log(`⚠️ Show not found: ${booking.show}`);
+          return;
+        }
+
+        booking.bookedSeats.forEach(seat => {
+          delete show.occupiedSeats[seat];
+        });
+        show.markModified("occupiedSeats");
+        await show.save();
+
+        await Booking.findByIdAndDelete(booking._id);
+        console.log(`✅ Released seats and deleted booking: ${bookingId}`);
+      } else {
+        console.log(`💰 Booking already paid: ${bookingId}`);
+      }
+    } catch (err) {
+      console.error("❌ Error in releaseSeatsAndDeleteBooking:", err);
     }
   }
 );
