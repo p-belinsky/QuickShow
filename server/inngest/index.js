@@ -117,11 +117,11 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       })
       .populate("user");
 
-    const showDateTime = booking.show.showDateTime; // should be UTC in DB
+    // Add 4 hours to correct stored UTC time
+    const correctedTime = addHours(new Date(booking.show.showDateTime), 4);
 
-    // Format date and time for theater's local time zone
-    const formattedDate = formatInTimeZone(showDateTime, THEATER_TIMEZONE, 'M/d/yyyy');
-    const formattedTime = formatInTimeZone(showDateTime, THEATER_TIMEZONE, 'h:mm:ss a');
+    const formattedDate = formatInTimeZone(correctedTime, THEATER_TIMEZONE, 'M/d/yyyy');
+    const formattedTime = formatInTimeZone(correctedTime, THEATER_TIMEZONE, 'h:mm:ss a');
 
     await sendEmail({
       to: booking.user.email,
