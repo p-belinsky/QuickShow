@@ -6,9 +6,9 @@ import User from "../models/User.js";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 import sendEmail from "../configs/nodeMailer.js";
-import { formatInTimeZone } from 'date-fns-tz';
 
-const THEATER_TIMEZONE = 'America/New_York';
+
+
 
 
 export const inngest = new Inngest({
@@ -117,11 +117,7 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       })
       .populate("user");
 
-    // Add 4 hours to correct stored UTC time
-    const correctedTime = addHours(new Date(booking.show.showDateTime), 4);
 
-    const formattedDate = formatInTimeZone(correctedTime, THEATER_TIMEZONE, 'M/d/yyyy');
-    const formattedTime = formatInTimeZone(correctedTime, THEATER_TIMEZONE, 'h:mm:ss a');
 
     await sendEmail({
       to: booking.user.email,
@@ -131,8 +127,8 @@ const sendBookingConfirmationEmail = inngest.createFunction(
           <h2>Hi ${booking.user.name},</h2>
           <p>Your booking for <strong style="color: #F84565;">"${booking.show.movie.title}"</strong> is confirmed.</p>
           <p>
-            <strong>Date:</strong> ${formattedDate}<br/>
-            <strong>Time:</strong> ${formattedTime}<br/>
+            <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString("en-US", { timeZone: "America/New_York"})}<br/>
+            <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString("en-US", { timeZone: "America/New_York"})}<br/>
           </p>
           <p>Enjoy the show! 🍿</p>
           <p>Thanks for booking with us! <br/>- QuickShow Team</p>
