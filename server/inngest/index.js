@@ -117,8 +117,8 @@ const sendBookingConfirmationEmail = inngest.createFunction(
       })
       .populate("user");
 
-      const localDate = new Date(booking.show.showDateTime).toLocaleDateString("en-US", {timeZone: "America/New_York"});
-      const localTime = new Date(booking.show.showDateTime).toLocaleTimeString("en-US", {timeZone: "America/New_York",  hour: "2-digit", minute: "2-digit", hour12: true});
+      const localDate = new Date(booking.show.showDateTime).toLocaleDateString("en-US");
+      const localTime = new Date(booking.show.showDateTime).toLocaleTimeString("en-US", {hour: "2-digit", minute: "2-digit", hour12: true});
 
     await sendEmail({
       to: booking.user.email,
