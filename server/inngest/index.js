@@ -6,7 +6,9 @@ import User from "../models/User.js";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 import sendEmail from "../configs/nodeMailer.js";
+import { formatInTimeZone } from 'date-fns-tz';
 
+const THEATER_TIMEZONE = 'America/New_York';
 
 
 export const inngest = new Inngest({
@@ -100,35 +102,45 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
 );
 
 const sendBookingConfirmationEmail = inngest.createFunction(
-  {id: "send-booking-confirmation-email"},
-  {event: "app/show.booked"},
-  async ({event, step}) => {
-      const {bookingId} = event.data;
+  { id: "send-booking-confirmation-email" },
+  { event: "app/show.booked" },
+  async ({ event, step }) => {
+    const { bookingId } = event.data;
 
-      const booking = await Booking.findById(bookingId).populate({
+    const booking = await Booking.findById(bookingId)
+      .populate({
         path: "show",
         populate: {
           path: "movie",
           model: "Movie"
         }
-      }).populate("user");
+      })
+      .populate("user");
 
-      await sendEmail({
-        to: booking.user.email,
-        subject: `Payment Confirmation: "${booking.show.movie.title}" booked! `,
-        body: ` <div style= "font-family: Arial, sans-serif; line-height: 1.5;">
+    const showDateTime = booking.show.showDateTime; // should be UTC in DB
+
+    // Format date and time for theater's local time zone
+    const formattedDate = formatInTimeZone(showDateTime, THEATER_TIMEZONE, 'M/d/yyyy');
+    const formattedTime = formatInTimeZone(showDateTime, THEATER_TIMEZONE, 'h:mm:ss a');
+
+    await sendEmail({
+      to: booking.user.email,
+      subject: `Payment Confirmation: "${booking.show.movie.title}" booked!`,
+      body: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
           <h2>Hi ${booking.user.name},</h2>
           <p>Your booking for <strong style="color: #F84565;">"${booking.show.movie.title}"</strong> is confirmed.</p>
           <p>
-            <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString('en-US', { timeZone: 'America/New_York' })}<br/>
-            <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString('en-US', { timeZone: 'America/New_York' })}<br/>
+            <strong>Date:</strong> ${formattedDate}<br/>
+            <strong>Time:</strong> ${formattedTime}<br/>
           </p>
-          <p>Enjoy the show! 🍿 </p>
+          <p>Enjoy the show! 🍿</p>
           <p>Thanks for booking with us! <br/>- QuickShow Team</p>
-          </div>`
-      })
+        </div>
+      `
+    });
   }
-)
+);
 
 
 
