@@ -127,8 +127,8 @@ const sendBookingConfirmationEmail = inngest.createFunction(
           <h2>Hi ${booking.user.name},</h2>
           <p>Your booking for <strong style="color: #F84565;">"${booking.show.movie.title}"</strong> is confirmed.</p>
           <p>
-            <strong>Date:</strong> ${new Date(booking.show.showDateTime + "Z").toLocaleDateString("en-US", { timeZone: "America/New_York"})}<br/>
-            <strong>Time:</strong> ${new Date(booking.show.showDateTime + "Z").toLocaleTimeString("en-US", { timeZone: "America/New_York", hour: "2-digit", minute: "2-digit", hour12: true})}<br/>
+            <strong>Date:</strong> ${new Date(booking.show.showDateTime).toLocaleDateString("en-US")}<br/>
+            <strong>Time:</strong> ${new Date(booking.show.showDateTime).toLocaleTimeString("en-US", {  hour: "2-digit", minute: "2-digit", hour12: true})}<br/>
           </p>
           <p>Enjoy the show! 🍿</p>
           <p>Thanks for booking with us! <br/>- QuickShow Team</p>
