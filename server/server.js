@@ -1,6 +1,8 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import connectDB from "./configs/db.js";
 import { clerkMiddleware } from "@clerk/express";
 import { inngest, functions } from "./inngest/index.js";
@@ -11,7 +13,6 @@ import adminRouter from "./routes/adminRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import { stripeWebhooks } from "./controllers/stripeWebhooks.js";
 
-dotenv.config();
 
 if (!process.env.CLERK_PUBLISHABLE_KEY || !process.env.CLERK_SECRET_KEY) {
   throw new Error("Missing Clerk environment variables");

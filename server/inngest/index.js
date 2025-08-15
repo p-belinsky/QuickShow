@@ -1,8 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import { Inngest } from "inngest";
 import User from "../models/User.js";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
-
 
 
 
@@ -11,10 +13,8 @@ export const inngest = new Inngest({
   eventKey: process.env.INNGEST_EVENT_KEY,
 });
 
-console.log(
-  "DEBUG: Inngest Event Key Loaded:",
-  process.env.INNGEST_EVENT_KEY ? "✅ Loaded" : "❌ MISSING"
-);
+
+
 
 const syncUserCreation = inngest.createFunction(
   {
@@ -77,44 +77,24 @@ const releaseSeatsAndDeleteBooking = inngest.createFunction(
     event: "app/checkpayment", // Make sure this exactly matches what you send
   },
   async ({ event, step }) => {
-    console.log("🔥 releaseSeatsAndDeleteBooking triggered", event.data.bookingId);
+    const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
+    await step.sleepUntil('wait-for-10-minutes',tenMinutesLater);
 
-    try {
-      // Wait 10 minutes
-      const tenMinutesLater = new Date(Date.now() + 10 * 60 * 1000);
-      console.log(`⏱ Sleeping until ${tenMinutesLater}`);
-      await step.sleepUntil('wait-for-10-minutes', tenMinutesLater);
+    await step.run('check-payment-status', async () => {
+        const bookingId = event.data.bookingId;
+        const booking = await Booking.findById(bookingId);
 
-      // Fetch booking
-      const bookingId = event.data.bookingId;
-      const booking = await Booking.findById(bookingId);
-      if (!booking) {
-        console.log(`⚠️ Booking not found: ${bookingId}`);
-        return;
-      }
-
-      // If not paid, release seats and delete booking
-      if (!booking.isPaid) {
-        const show = await Show.findById(booking.show);
-        if (!show) {
-          console.log(`⚠️ Show not found: ${booking.show}`);
-          return;
+        if(!booking.isPaid) {
+          const show = await Show.findById(booking.show);
+          booking.bookedSeats.forEach((seat) => {
+           delete show.occupiedSeats[seat] 
+          })
+          show.markModified("occupiedSeats");
+          await show.save();
+          await Booking.findByIdAndDelete(booking._id);
         }
-
-        booking.bookedSeats.forEach(seat => {
-          delete show.occupiedSeats[seat];
-        });
-        show.markModified("occupiedSeats");
-        await show.save();
-
-        await Booking.findByIdAndDelete(booking._id);
-        console.log(`✅ Released seats and deleted booking: ${bookingId}`);
-      } else {
-        console.log(`💰 Booking already paid: ${bookingId}`);
-      }
-    } catch (err) {
-      console.error("❌ Error in releaseSeatsAndDeleteBooking:", err);
-    }
+      
+    })
   }
 );
 

@@ -66,7 +66,6 @@ export const createBooking = async (req, res) => {
         booking.paymentLink = session.url;
         await booking.save();
 
-        // ✅ Pass event key explicitly
         await inngest.send(
             {
                 name: "app/checkpayment",
