@@ -233,11 +233,11 @@ const sendNewShowNotifications = inngest.createFunction(
       const subject = `🎬 New Show Added: ${movieTitle}`;
       const body = `<div style="font-family: Arial, sans-serif; padding: 20px;">
         <h2>Hi ${userName},</h2>
-        <p>We've just added a new shhow to our library: </p>
+        <p>We've just added a new show to our library: </p>
         <h3 style="color: #F84565;">${movieTitle}</h3>
         <p>Visit our website</p>
         <br/>
-        <p>Thanks. <br/>QuickShow Team</p>
+        <p>Thanks <br/>QuickShow Team</p>
       </div>
         
         `;
